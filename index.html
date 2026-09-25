@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TMC Client Margins</title>
+<meta name="description" content="The Migration Company – client-wise and batch-wise gross margin dashboard for August 2026.">
+<link rel="icon" href="assets/tmc-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f4f1;
+  --surface-1: #fcfcfb;
+  --surface-2: #f0efec;
+  --border: #e3e2dd;
+  --grid: #e8e7e2;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #797874;
+  --brand-magenta: #e5157a;
+  --brand-blue: #2b8fd9;
+  --header-bg: #0d0d0f;
+  /* data roles */
+  --revenue: #2a78d6;
+  --teacher: #eb6834;
+  --ops: #4a3aa7;
+  --contrib: #1baf7a;
+  --seg-group: #2a78d6;
+  --seg-non: #eb6834;
+  --credit: #9b9a95;
+  --ft: #2a78d6;
+  --cons: #eb6834;
+  /* status */
+  --good: #0ca30c;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  --good-text: #006300;
+  --critical-text: #b42323;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111110;
+    --surface-1: #1a1a19;
+    --surface-2: #232321;
+    --border: #2f2f2c;
+    --grid: #2c2c2a;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #94938b;
+    --revenue: #3987e5;
+    --teacher: #d95926;
+    --ops: #9085e9;
+    --contrib: #199e70;
+    --seg-group: #3987e5;
+    --seg-non: #d95926;
+    --credit: #6f6e69;
+    --ft: #3987e5;
+    --cons: #d95926;
+    --good-text: #4fcf4f;
+    --critical-text: #ff8a8a;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111110;
+  --surface-1: #1a1a19;
+  --surface-2: #232321;
+  --border: #2f2f2c;
+  --grid: #2c2c2a;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #94938b;
+  --revenue: #3987e5;
+  --teacher: #d95926;
+  --ops: #9085e9;
+  --contrib: #199e70;
+  --seg-group: #3987e5;
+  --seg-non: #d95926;
+  --credit: #6f6e69;
+  --ft: #3987e5;
+  --cons: #d95926;
+  --good-text: #4fcf4f;
+  --critical-text: #ff8a8a;
+  --shadow: none;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.num { font-variant-numeric: tabular-nums; }
+
+/* Header */
+header.top {
+  background: var(--header-bg);
+  color: #fff;
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, var(--brand-magenta), var(--brand-blue)) 1;
+}
+.top-inner {
+  max-width: 1240px; margin: 0 auto; padding: 14px 24px;
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+}
+.top-inner img { height: 44px; width: auto; display: block; }
+.top-title { flex: 1; min-width: 220px; }
+.top-title h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
+.top-title p { margin: 0; color: #b9b8b2; font-size: 13px; }
+.theme-btn {
+  background: transparent; color: #d9d8d2; border: 1px solid #3a3a38; border-radius: 8px;
+  padding: 6px 10px; font: inherit; font-size: 12px; cursor: pointer;
+}
+.theme-btn:hover { border-color: #6a6a66; color: #fff; }
+
+/* Tabs + filter bar */
+.controls {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.controls-inner { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+nav.tabs button {
+  background: none; border: none; font: inherit; font-weight: 500; color: var(--text-secondary);
+  padding: 12px 12px 10px; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+}
+nav.tabs button[aria-selected="true"] { color: var(--text-primary); border-bottom-color: var(--brand-magenta); }
+nav.tabs button:hover { color: var(--text-primary); }
+.filters { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 10px 0 12px; }
+.filter { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.seg {
+  display: inline-flex; background: var(--surface-2); border-radius: 8px; padding: 2px; border: 1px solid var(--border);
+}
+.seg button {
+  background: none; border: none; font: inherit; font-size: 12px; color: var(--text-secondary);
+  padding: 4px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+}
+.seg button[aria-pressed="true"] { background: var(--surface-1); color: var(--text-primary); box-shadow: 0 1px 2px rgba(0,0,0,.12); font-weight: 500; }
+select {
+  font: inherit; font-size: 12px; color: var(--text-primary); background: var(--surface-1);
+  border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px;
+}
+.reset { font-size: 12px; color: var(--text-secondary); background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit; }
+
+main { max-width: 1240px; margin: 0 auto; padding: 20px 24px 60px; }
+section.panel[hidden] { display: none; }
+
+.grid { display: grid; gap: 16px; }
+.g-kpi { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.g-2 { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+.g-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+.card {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+  padding: 18px 20px; box-shadow: var(--shadow); min-width: 0;
+}
+.card h2 { margin: 0 0 2px; font-size: 15px; font-weight: 600; letter-spacing: -.005em; }
+.card .sub { margin: 0 0 14px; color: var(--text-secondary); font-size: 13px; }
+.section-gap { height: 16px; }
+
+.kpi .label { font-size: 12px; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.kpi .value { font-size: 26px; font-weight: 600; letter-spacing: -.02em; margin-top: 4px; }
+.kpi .foot { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.kpi .foot strong { color: var(--text-secondary); font-weight: 600; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* status chips */
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; }
+.chip i { width: 14px; height: 14px; border-radius: 50%; display: inline-grid; place-items: center; font-style: normal; font-size: 9px; font-weight: 700; color: #fff; }
+.chip.good i { background: var(--good); }
+.chip.moderate i { background: var(--warning); color: #3a2a00; }
+.chip.thin i { background: var(--serious); }
+.chip.loss i { background: var(--critical); }
+
+/* Rs 100 bar */
+.hundred { display: flex; height: 44px; gap: 2px; border-radius: 8px; overflow: hidden; }
+.hundred div { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 13px; min-width: 0; white-space: nowrap; cursor: default; }
+.hundred-keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 14px; }
+.hundred-keys .k { display: flex; gap: 10px; align-items: flex-start; }
+.hundred-keys .k .swatch { margin-top: 5px; }
+.hundred-keys .k b { display: block; font-size: 18px; font-weight: 600; }
+.hundred-keys .k span { font-size: 12px; color: var(--text-secondary); }
+
+/* insights */
+.insights { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.insights li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; }
+.insights .ic { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-size: 14px; background: var(--surface-2); }
+.insights b { font-weight: 600; }
+.insights p { margin: 0; color: var(--text-secondary); }
+.insights p b { color: var(--text-primary); }
+
+/* charts */
+.chart { width: 100%; position: relative; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart text { fill: var(--text-secondary); font-size: 11px; font-family: inherit; }
+.chart .t-strong { fill: var(--text-primary); font-weight: 600; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .axis { stroke: var(--text-muted); stroke-width: 1; }
+.chart .hit { fill: transparent; cursor: pointer; }
+.chart .row:hover .hit { fill: var(--surface-2); }
+
+#tooltip {
+  position: fixed; pointer-events: none; z-index: 100; opacity: 0; transition: opacity .08s;
+  background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px; font-size: 12px; min-width: 180px; max-width: 280px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.16);
+}
+#tooltip .tt-title { font-weight: 600; margin-bottom: 6px; font-size: 13px; }
+#tooltip .tt-row { display: flex; justify-content: space-between; gap: 14px; color: var(--text-secondary); }
+#tooltip .tt-row b { color: var(--text-primary); font-weight: 600; }
+#tooltip .tt-row .l { display: inline-flex; align-items: center; gap: 6px; }
+#tooltip hr { border: none; border-top: 1px solid var(--border); margin: 6px 0; }
+
+/* tables */
+.table-wrap { overflow-x: auto; margin: 0 -4px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--border); }
+th:first-child, td:first-child, th.l, td.l { text-align: left; }
+th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); cursor: pointer; user-select: none; position: sticky; top: 0; background: var(--surface-1); }
+th.nosort { cursor: default; }
+th .arr { opacity: .6; margin-left: 3px; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: var(--surface-2); }
+tfoot td { font-weight: 600; border-top: 2px solid var(--border); border-bottom: none; }
+td .mbar { display: inline-block; vertical-align: middle; height: 8px; border-radius: 0 4px 4px 0; margin-right: 8px; }
+.neg { color: var(--critical-text); }
+
+/* client cards */
+.client-card { cursor: pointer; transition: border-color .12s; }
+.client-card:hover { border-color: var(--text-muted); }
+.client-card .ch { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.client-card .ch h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.tag { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 99px; background: var(--surface-2); color: var(--text-secondary); display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
+.client-card .big { font-size: 22px; font-weight: 600; margin: 8px 0 2px; letter-spacing: -.02em; }
+.split { display: flex; height: 14px; gap: 2px; margin: 12px 0 8px; }
+.split div { height: 100%; min-width: 2px; }
+.split div:first-child { border-radius: 4px 0 0 4px; }
+.split div:last-child { border-radius: 0 4px 4px 0; }
+.mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.mini-stats div { font-size: 11px; color: var(--text-muted); }
+.mini-stats b { display: block; color: var(--text-primary); font-size: 14px; font-weight: 600; }
+
+/* drawer */
+#drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 60; opacity: 0; pointer-events: none; transition: opacity .15s; }
+#drawer-bg.open { opacity: 1; pointer-events: auto; }
+#drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); z-index: 61;
+  background: var(--surface-1); border-left: 1px solid var(--border); overflow-y: auto;
+  transform: translateX(100%); transition: transform .2s ease; padding: 22px 24px 40px;
+}
+#drawer.open { transform: none; }
+#drawer .close { position: absolute; top: 14px; right: 16px; background: var(--surface-2); border: none; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; cursor: pointer; color: var(--text-primary); }
+#drawer h2 { margin: 0 40px 2px 0; font-size: 20px; letter-spacing: -.01em; }
+#drawer h4 { margin: 22px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); font-weight: 600; }
+.calc { display: grid; grid-template-columns: 1fr auto; gap: 4px 0; font-size: 13px; }
+.calc .k { color: var(--text-secondary); }
+.calc .v { padding-left: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+.calc .tot { font-weight: 600; border-top: 1px solid var(--border); padding-top: 4px; }
+.calc .tot.k { color: var(--text-primary); }
+.explain { font-size: 12px; color: var(--text-muted); margin: 6px 0 0; }
+.sim { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; margin-top: 8px; }
+.sim input[type=range] { width: 100%; accent-color: var(--brand-magenta); }
+.sim .row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.sim .res { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.sim .res div { font-size: 11px; color: var(--text-muted); }
+.sim .res b { display: block; font-size: 16px; color: var(--text-primary); }
+
+/* method */
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; counter-reset: step; }
+.flow .step { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; position: relative; }
+.flow .step::before { counter-increment: step; content: counter(step); position: absolute; top: 12px; right: 14px; font-weight: 700; font-size: 22px; color: var(--border); }
+.flow .step h3 { margin: 0 0 6px; font-size: 14px; }
+.flow .step p { margin: 0; font-size: 13px; color: var(--text-secondary); }
+.formula { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; margin-top: 8px; color: var(--text-primary); }
+dl.gloss { display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: 8px 18px; margin: 0; font-size: 13px; }
+dl.gloss dt { font-weight: 600; }
+dl.gloss dd { margin: 0; color: var(--text-secondary); }
+
+.empty { padding: 30px; text-align: center; color: var(--text-muted); }
+footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--text-muted); font-size: 12px; }
+
+@media (max-width: 640px) {
+  .top-inner, .controls-inner, main, footer { padding-left: 16px; padding-right: 16px; }
+  .g-2, .g-3 { grid-template-columns: 1fr; }
+  .top-inner img { height: 34px; }
+  .kpi .value { font-size: 20px; }
+  .g-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .card { padding: 14px 14px; }
+  .controls { position: static; }
+  dl.gloss { grid-template-columns: 1fr; gap: 2px; }
+  dl.gloss dd { margin-bottom: 8px; }
+}
+@media print {
+  .controls, .theme-btn { display: none; }
+  section.panel[hidden] { display: block; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <img src="assets/tmc-logo.png" alt="The Migration Company">
+    <div class="top-title">
+      <h1>Client-wise Gross Margin Dashboard</h1>
+      <p>Batch-level profitability for August 2026 · all amounts in ₹ (Rs)</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐ Theme</button>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="controls-inner">
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+      <button role="tab" data-tab="clients" aria-selected="false">Clients</button>
+      <button role="tab" data-tab="batches" aria-selected="false">Batches</button>
+      <button role="tab" data-tab="teachers" aria-selected="false">Teachers</button>
+      <button role="tab" data-tab="method" aria-selected="false">How it's calculated</button>
+    </nav>
+    <div class="filters">
+      <div class="filter">Segment
+        <div class="seg" id="fSegment">
+          <button data-v="All" aria-pressed="true">All</button>
+          <button data-v="Group" aria-pressed="false">Group</button>
+          <button data-v="Non-group" aria-pressed="false">Non-group</button>
+        </div>
+      </div>
+      <div class="filter">Client <select id="fClient"></select></div>
+      <div class="filter">Teacher
+        <div class="seg" id="fTeacher">
+          <button data-v="All" aria-pressed="true">All</button>
+          <button data-v="Full Time" aria-pressed="false">Full-time</button>
+          <button data-v="Consultant" aria-pressed="false">Consultant</button>
+        </div>
+      </div>
+      <div class="filter">Margin view
+        <div class="seg" id="fBasis">
+          <button data-v="gross" aria-pressed="false" title="Revenue minus teacher cost">After teacher cost</button>
+          <button data-v="net" aria-pressed="true" title="Revenue minus teacher cost minus share of operations team cost">After teacher + ops cost</button>
+        </div>
+      </div>
+      <span class="tag" id="teacherPill" hidden></span>
+      <button class="reset" id="resetBtn" type="button">Reset filters</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <!-- OVERVIEW -->
+  <section class="panel" id="p-overview">
+    <div class="grid g-kpi" id="kpis"></div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2>Where every ₹100 of revenue goes</h2>
+      <p class="sub">Out of each ₹100 we earn from clients this month, this is how much pays teachers, how much pays the operations team, and how much is left as contribution.</p>
+      <div class="hundred" id="hundred"></div>
+      <div class="hundred-keys" id="hundredKeys"></div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="grid g-2">
+      <div class="card">
+        <h2>From billing to contribution</h2>
+        <p class="sub">How August's billing becomes the contribution we keep, step by step.</p>
+        <div class="chart" id="waterfall"></div>
+      </div>
+      <div class="card">
+        <h2>What the numbers are telling us</h2>
+        <p class="sub">Key takeaways for the current filter selection.</p>
+        <ul class="insights" id="insights"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLIENTS -->
+  <section class="panel" id="p-clients" hidden>
+    <div class="grid g-2">
+      <div class="card">
+        <h2>Revenue by client</h2>
+        <p class="sub">How much of the month's net revenue each client brings in, and what's left after costs.</p>
+        <div class="legend">
+          <span><i class="swatch" style="background:var(--teacher)"></i>Teacher cost</span>
+          <span><i class="swatch" style="background:var(--ops)"></i>Ops team cost</span>
+          <span><i class="swatch" style="background:var(--contrib)"></i>Contribution</span>
+        </div>
+        <div class="chart" id="clientRevChart"></div>
+      </div>
+      <div class="card">
+        <h2>Group vs Non-group</h2>
+        <p class="sub">Group = Somika &amp; Vinmart. Non-group = all other clients.</p>
+        <div id="segCompare"></div>
+      </div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="grid g-3" id="clientCards"></div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2>Client summary table</h2>
+      <p class="sub">The same figures as the "Client Summary" sheet, plus margin after operations cost. Click a row to see that client's batches.</p>
+      <div class="table-wrap"><table id="clientTable"></table></div>
+    </div>
+  </section>
+
+  <!-- BATCHES -->
+  <section class="panel" id="p-batches" hidden>
+    <div class="card">
+      <h2>Margin by batch</h2>
+      <p class="sub" id="batchChartSub"></p>
+      <div class="legend" id="statusLegend"></div>
+      <div class="chart" id="batchMarginChart"></div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2>Batch P&amp;L</h2>
+      <p class="sub">Every batch that ran in August. Click a column to sort; click a row to see how its revenue and cost were worked out and to try a "what if".</p>
+      <div class="table-wrap"><table id="batchTable"></table></div>
+    </div>
+  </section>
+
+  <!-- TEACHERS -->
+  <section class="panel" id="p-teachers" hidden>
+    <div class="grid g-2" id="ttCompare"></div>
+    <div class="section-gap"></div>
+    <div class="grid g-2">
+      <div class="card">
+        <h2>Teacher cost per teaching hour</h2>
+        <p class="sub">What one hour of teaching cost us in August, by teacher. Full-time teachers look cheap per hour because a batch is charged only for the hours taught. The rest of their salary sits in the ops team cost.</p>
+        <div class="chart" id="costPerHourChart"></div>
+      </div>
+      <div class="card">
+        <h2>Full-time teacher capacity used</h2>
+        <p class="sub">Teaching hours charged to batches in August compared with a full month's capacity (8 hrs × 31 days = 248 hrs), as the model assumes. Salary for unused hours is not charged to batches. It stays in the operations cost pool.</p>
+        <div class="chart" id="utilChart"></div>
+      </div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2>Teacher table</h2>
+      <p class="sub">Revenue and cost of the batches each teacher ran. Click a row to see that teacher's batches.</p>
+      <div class="table-wrap"><table id="teacherTable"></table></div>
+    </div>
+  </section>
+
+  <!-- METHOD -->
+  <section class="panel" id="p-method" hidden>
+    <div class="card">
+      <h2>How the model works</h2>
+      <p class="sub">TMC runs language-training batches for corporate (B2B) clients. Each client pays a fee per learner for a whole course that can span several months. This dashboard answers one question: <b>how much did each client and batch earn us in August, after paying for the teaching?</b></p>
+      <div class="flow">
+        <div class="step">
+          <h3>Revenue for the month</h3>
+          <p>A course fee is spread evenly over the course's days. August's revenue is the share of days that fell in August.</p>
+          <div class="formula">Learners × Fee × (Days in Aug ÷ Course days)</div>
+        </div>
+        <div class="step">
+          <h3>Less credit notes</h3>
+          <p>Refunds or reductions issued to a client (e.g. learners leaving a batch) are spread the same way and subtracted, giving <b>net revenue</b>.</p>
+        </div>
+        <div class="step">
+          <h3>Teacher cost</h3>
+          <p>Course hours are spread over the course's days to get the hours taught in August. Consultants are paid per hour. Full-time teachers are charged at their monthly salary ÷ available hours.</p>
+          <div class="formula">Hours in Aug × Hourly rate</div>
+        </div>
+        <div class="step">
+          <h3>Gross margin</h3>
+          <p>Net revenue minus teacher cost. This is the "Contribution" figure on the Client Summary sheet.</p>
+        </div>
+        <div class="step">
+          <h3>Ops team cost</h3>
+          <p>Operations salaries (less full-time teacher cost already charged) are shared across batches in proportion to their revenue.</p>
+          <div class="formula">Ops pool × (Batch revenue ÷ Total revenue)</div>
+        </div>
+        <div class="step">
+          <h3>Contribution after ops</h3>
+          <p>What each batch leaves over to pay for sales, admin (G&amp;A) and other overheads, and for profit.</p>
+        </div>
+      </div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="grid g-2">
+      <div class="card">
+        <h2>Worked example</h2>
+        <p class="sub" id="exampleSub"></p>
+        <div id="example"></div>
+      </div>
+      <div class="card">
+        <h2>Operations cost pool</h2>
+        <p class="sub">How the operations team cost to be shared was built.</p>
+        <div class="calc" id="opsPool"></div>
+        <p class="explain">This is shared by revenue, so every batch carries the same ops cost of <b id="opsPct"></b> of its revenue. It lowers every margin by the same number of points. It never changes which batch ranks higher.</p>
+      </div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2>Glossary</h2>
+      <dl class="gloss">
+        <dt>Batch</dt><dd>A group of learners taking one course together (e.g. A1.61 = level A1, batch 61). 1:1 batches have a single learner.</dd>
+        <dt>Group / Non-group</dt><dd>Group clients are Somika and Vinmart Foundation. All other clients are Non-group.</dd>
+        <dt>Gross revenue</dt><dd>The part of the course fee earned in August, before credit notes.</dd>
+        <dt>Credit notes</dt><dd>Reductions issued to the client, spread over the same days as the course.</dd>
+        <dt>Net revenue</dt><dd>Gross revenue less credit notes.</dd>
+        <dt>Teacher cost</dt><dd>Direct cost of the teacher's hours in August (also called COGS).</dd>
+        <dt>Gross margin %</dt><dd>(Net revenue − Teacher cost) ÷ Net revenue.</dd>
+        <dt>Ops team cost</dt><dd>The batch's share of operations salaries (coordinators, recruiters, full-time teachers' unused time).</dd>
+        <dt>Contribution margin %</dt><dd>(Net revenue − Teacher cost − Ops team cost) ÷ Net revenue.</dd>
+        <dt>Margin health</dt><dd><span class="chip good"><i>✓</i>Strong</span> 50%+ · <span class="chip moderate"><i>!</i>Moderate</span> 30–50% · <span class="chip thin"><i>▾</i>Thin</span> 0–30% · <span class="chip loss"><i>✕</i>Loss</span> below 0%</dd>
+      </dl>
+    </div>
+  </section>
+</main>
+
+<footer>Source: Profitability by Courses Segment – August 2026 (Batch P&amp;L, Revenue, COGS and Payroll sheets). Figures are recalculated in the browser from the batch-level data and tie back to the workbook totals.</footer>
+
+<div id="tooltip" role="tooltip"></div>
+<div id="drawer-bg"></div>
+<aside id="drawer" aria-hidden="true"><button class="close" type="button" aria-label="Close">×</button><div id="drawerBody"></div></aside>
+
+<script src="data/data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
