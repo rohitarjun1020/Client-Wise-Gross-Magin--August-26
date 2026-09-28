@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TMC Client Margins</title>
-<meta name="description" content="The Migration Company – client-wise and batch-wise gross margin dashboard for August 2026.">
+<meta name="description" content="The Migration Company – client-wise and batch-wise profitability, FY 2026-27 year to date (April–August 2026).">
 <link rel="icon" href="assets/tmc-logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -29,6 +29,7 @@
   --contrib: #1baf7a;
   --seg-group: #2a78d6;
   --seg-non: #eb6834;
+  --seg-rtd: #1baf7a;
   --credit: #9b9a95;
   --ft: #2a78d6;
   --cons: #eb6834;
@@ -58,6 +59,7 @@
     --contrib: #199e70;
     --seg-group: #3987e5;
     --seg-non: #d95926;
+    --seg-rtd: #199e70;
     --credit: #6f6e69;
     --ft: #3987e5;
     --cons: #d95926;
@@ -82,6 +84,7 @@
   --contrib: #199e70;
   --seg-group: #3987e5;
   --seg-non: #d95926;
+  --seg-rtd: #199e70;
   --credit: #6f6e69;
   --ft: #3987e5;
   --cons: #d95926;
@@ -140,9 +143,9 @@ nav.tabs button {
 nav.tabs button[aria-selected="true"] { color: var(--text-primary); border-bottom-color: var(--brand-magenta); }
 nav.tabs button:hover { color: var(--text-primary); }
 .filters { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 10px 0 12px; }
-.filter { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.filter { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; font-size: 12px; color: var(--text-secondary); }
 .seg {
-  display: inline-flex; background: var(--surface-2); border-radius: 8px; padding: 2px; border: 1px solid var(--border);
+  display: inline-flex; flex-wrap: wrap; max-width: 100%; background: var(--surface-2); border-radius: 8px; padding: 2px; border: 1px solid var(--border);
 }
 .seg button {
   background: none; border: none; font: inherit; font-size: 12px; color: var(--text-secondary);
@@ -285,7 +288,7 @@ td .mbar { display: inline-block; vertical-align: middle; height: 8px; border-ra
 .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; counter-reset: step; }
 .flow .step { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; position: relative; }
 .flow .step::before { counter-increment: step; content: counter(step); position: absolute; top: 12px; right: 14px; font-weight: 700; font-size: 22px; color: var(--border); }
-.flow .step h3 { margin: 0 0 6px; font-size: 14px; }
+.flow .step h3 { margin: 0 0 6px; font-size: 14px; padding-right: 22px; }
 .flow .step p { margin: 0; font-size: 13px; color: var(--text-secondary); }
 .formula { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; margin-top: 8px; color: var(--text-primary); }
 dl.gloss { display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: 8px 18px; margin: 0; font-size: 13px; }
@@ -294,6 +297,25 @@ dl.gloss dd { margin: 0; color: var(--text-secondary); }
 
 .empty { padding: 30px; text-align: center; color: var(--text-muted); }
 footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--text-muted); font-size: 12px; }
+
+
+/* period + month chart + matrix + notes */
+.period .seg button { min-width: 44px; }
+.note { border-left: 3px solid var(--seg-rtd); background: var(--surface-2); border-radius: 0 10px 10px 0; padding: 12px 14px; font-size: 13px; color: var(--text-secondary); }
+.note b { color: var(--text-primary); }
+.matrix td, .matrix th { text-align: right; }
+.matrix td.l, .matrix th.l { text-align: left; }
+.matrix td.cell { min-width: 92px; }
+.matrix .dim { color: var(--text-muted); }
+.matrix .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 6px; vertical-align: middle; }
+.matrix tbody tr { cursor: pointer; }
+.mis td.var { color: var(--text-secondary); }
+.mis tr.sec td { font-weight: 600; background: var(--surface-2); text-align: left; cursor: default; }
+.mis tbody tr { cursor: default; }
+.mis tbody tr:hover { background: none; }
+.month-table { font-size: 12px; }
+.month-table td, .month-table th { padding: 6px 8px; }
+.month-table tbody tr { cursor: default; }
 
 @media (max-width: 640px) {
   .top-inner, .controls-inner, main, footer { padding-left: 16px; padding-right: 16px; }
@@ -317,8 +339,8 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
   <div class="top-inner">
     <img src="assets/tmc-logo.png" alt="The Migration Company">
     <div class="top-title">
-      <h1>Client-wise Gross Margin Dashboard</h1>
-      <p>Batch-level profitability for August 2026 · all amounts in ₹ (Rs)</p>
+      <h1>Client-wise Profitability Dashboard</h1>
+      <p>FY 2026-27 · Year to date, April–August 2026 · all amounts in ₹ (Rs)</p>
     </div>
     <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐ Theme</button>
   </div>
@@ -328,17 +350,23 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
   <div class="controls-inner">
     <nav class="tabs" role="tablist">
       <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+      <button role="tab" data-tab="trend" aria-selected="false">Month by month</button>
       <button role="tab" data-tab="clients" aria-selected="false">Clients</button>
       <button role="tab" data-tab="batches" aria-selected="false">Batches</button>
       <button role="tab" data-tab="teachers" aria-selected="false">Teachers</button>
       <button role="tab" data-tab="method" aria-selected="false">How it's calculated</button>
     </nav>
     <div class="filters">
+      <div class="filter period">Period
+        <div class="seg" id="fPeriod"></div>
+      </div>
       <div class="filter">Segment
         <div class="seg" id="fSegment">
-          <button data-v="All" aria-pressed="true">All</button>
+          <button data-v="All" aria-pressed="true" title="Everything, including RTD">All</button>
+          <button data-v="B2B" aria-pressed="false" title="Group + Non-group clients, excluding RTD">B2B only</button>
           <button data-v="Group" aria-pressed="false">Group</button>
           <button data-v="Non-group" aria-pressed="false">Non-group</button>
+          <button data-v="RTD" aria-pressed="false">RTD</button>
         </div>
       </div>
       <div class="filter">Client <select id="fClient"></select></div>
@@ -367,8 +395,15 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
     <div class="grid g-kpi" id="kpis"></div>
     <div class="section-gap"></div>
     <div class="card">
-      <h2>Where every ₹100 of revenue goes</h2>
-      <p class="sub">Out of each ₹100 we earn from clients this month, this is how much pays teachers, how much pays the operations team, and how much is left as contribution.</p>
+      <h2>Month by month</h2>
+      <p class="sub" id="miniTrendSub">Net revenue each month, split into what paid teachers, what paid the operations team, and what was left as contribution. Click a month to see only that month.</p>
+      <div class="legend" id="miniTrendLegend"></div>
+      <div class="chart" id="miniTrend"></div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2 id="hundredTitle">Where every ₹100 of revenue goes</h2>
+      <p class="sub" id="hundredSub"></p>
       <div class="hundred" id="hundred"></div>
       <div class="hundred-keys" id="hundredKeys"></div>
     </div>
@@ -376,14 +411,58 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
     <div class="grid g-2">
       <div class="card">
         <h2>From billing to contribution</h2>
-        <p class="sub">How August's billing becomes the contribution we keep, step by step.</p>
+        <p class="sub" id="waterfallSub"></p>
         <div class="chart" id="waterfall"></div>
       </div>
       <div class="card">
         <h2>What the numbers are telling us</h2>
-        <p class="sub">Key takeaways for the current filter selection.</p>
+        <p class="sub">Key takeaways for the current period and filters.</p>
         <ul class="insights" id="insights"></ul>
       </div>
+    </div>
+  </section>
+
+  <!-- TREND -->
+  <section class="panel" id="p-trend" hidden>
+    <div class="grid g-2">
+      <div class="card">
+        <h2>Revenue and where it went, by month</h2>
+        <p class="sub">Each column is one month's net revenue. The coloured parts show what paid teachers, what paid the operations team, and what was left.</p>
+        <div class="legend" id="trendLegend"></div>
+        <div class="chart" id="trendStack"></div>
+      </div>
+      <div class="card">
+        <h2>Margin % by month</h2>
+        <p class="sub">Gross margin (after teacher cost) and contribution margin (after teacher + ops cost) for each month.</p>
+        <div class="legend">
+          <span><i class="swatch" style="background:var(--revenue)"></i>Gross margin %</span>
+          <span><i class="swatch" style="background:var(--contrib)"></i>Contribution margin %</span>
+        </div>
+        <div class="chart" id="trendMargin"></div>
+      </div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2>Client by month</h2>
+      <p class="sub">Each client's figures month by month, as on the YTD Summary sheet. Click a row to see that client's batches.</p>
+      <div class="filters" style="padding-top:0">
+        <div class="filter">Show
+          <div class="seg" id="fMatrix">
+            <button data-v="netRevenue" aria-pressed="true">Net revenue</button>
+            <button data-v="grossMargin" aria-pressed="false">Gross margin ₹</button>
+            <button data-v="gm" aria-pressed="false">Gross margin %</button>
+            <button data-v="contribution" aria-pressed="false">Contribution ₹</button>
+            <button data-v="cm" aria-pressed="false">Contribution %</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap"><table class="matrix" id="matrix"></table></div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2>Monthly P&amp;L summary</h2>
+      <p class="sub">The totals behind each month's Batch P&amp;L sheet.</p>
+      <div class="table-wrap"><table class="matrix" id="monthTable"></table></div>
     </div>
   </section>
 
@@ -392,17 +471,13 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
     <div class="grid g-2">
       <div class="card">
         <h2>Revenue by client</h2>
-        <p class="sub">How much of the month's net revenue each client brings in, and what's left after costs.</p>
-        <div class="legend">
-          <span><i class="swatch" style="background:var(--teacher)"></i>Teacher cost</span>
-          <span><i class="swatch" style="background:var(--ops)"></i>Ops team cost</span>
-          <span><i class="swatch" style="background:var(--contrib)"></i>Contribution</span>
-        </div>
+        <p class="sub" id="clientRevSub"></p>
+        <div class="legend"></div>
         <div class="chart" id="clientRevChart"></div>
       </div>
       <div class="card">
-        <h2>Group vs Non-group</h2>
-        <p class="sub">Group = Somika &amp; Vinmart. Non-group = all other clients.</p>
+        <h2>Group vs Non-group vs RTD</h2>
+        <p class="sub">Group = Somika &amp; Vinmart. Non-group = all other corporate clients. RTD = TMC's own RTD training, which is not B2B.</p>
         <div id="segCompare"></div>
       </div>
     </div>
@@ -411,7 +486,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
     <div class="section-gap"></div>
     <div class="card">
       <h2>Client summary table</h2>
-      <p class="sub">The same figures as the "Client Summary" sheet, plus margin after operations cost. Click a row to see that client's batches.</p>
+      <p class="sub">The same figures as the YTD Summary sheet (or that month's Client Summary), with margin after operations cost. Click a row to see that client's batches.</p>
       <div class="table-wrap"><table id="clientTable"></table></div>
     </div>
   </section>
@@ -427,7 +502,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
     <div class="section-gap"></div>
     <div class="card">
       <h2>Batch P&amp;L</h2>
-      <p class="sub">Every batch that ran in August. Click a column to sort; click a row to see how its revenue and cost were worked out and to try a "what if".</p>
+      <p class="sub" id="batchTableSub"></p>
       <div class="table-wrap"><table id="batchTable"></table></div>
     </div>
   </section>
@@ -439,19 +514,19 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
     <div class="grid g-2">
       <div class="card">
         <h2>Teacher cost per teaching hour</h2>
-        <p class="sub">What one hour of teaching cost us in August, by teacher. Full-time teachers look cheap per hour because a batch is charged only for the hours taught. The rest of their salary sits in the ops team cost.</p>
+        <p class="sub">What one hour of teaching cost in the selected period, by teacher. Full-time teachers look cheap per hour because a batch is charged only for the hours taught. The rest of their salary sits in the ops team cost.</p>
         <div class="chart" id="costPerHourChart"></div>
       </div>
       <div class="card">
         <h2>Full-time teacher capacity used</h2>
-        <p class="sub">Teaching hours charged to batches in August compared with a full month's capacity (8 hrs × 31 days = 248 hrs), as the model assumes. Salary for unused hours is not charged to batches. It stays in the operations cost pool.</p>
+        <p class="sub">Teaching hours charged to batches compared with capacity of 8 hrs a day for each month the teacher taught, as the model assumes. Salary for unused hours is not charged to batches. It stays in the operations cost pool.</p>
         <div class="chart" id="utilChart"></div>
       </div>
     </div>
     <div class="section-gap"></div>
     <div class="card">
       <h2>Teacher table</h2>
-      <p class="sub">Revenue and cost of the batches each teacher ran. Click a row to see that teacher's batches.</p>
+      <p class="sub">Revenue and cost of the batches each teacher ran, as named on the Batch P&amp;L. Click a row to see that teacher's batches.</p>
       <div class="table-wrap"><table id="teacherTable"></table></div>
     </div>
   </section>
@@ -460,12 +535,12 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
   <section class="panel" id="p-method" hidden>
     <div class="card">
       <h2>How the model works</h2>
-      <p class="sub">TMC runs language-training batches for corporate (B2B) clients. Each client pays a fee per learner for a whole course that can span several months. This dashboard answers one question: <b>how much did each client and batch earn us in August, after paying for the teaching?</b></p>
+      <p class="sub">TMC runs language-training batches for corporate (B2B) clients. Each client pays a fee per learner for a whole course that can run over several months. The model works out each month's profit for every batch, and the YTD figures add up April to August. It answers one question: <b>how much did each client and batch earn us after paying for the teaching and the operations team?</b></p>
       <div class="flow">
         <div class="step">
           <h3>Revenue for the month</h3>
-          <p>A course fee is spread evenly over the course's days. August's revenue is the share of days that fell in August.</p>
-          <div class="formula">Learners × Fee × (Days in Aug ÷ Course days)</div>
+          <p>A course fee is spread evenly over the course's days. Each month's revenue is the share of days that fell in that month.</p>
+          <div class="formula">Learners × Fee × (Days in month ÷ Course days)</div>
         </div>
         <div class="step">
           <h3>Less credit notes</h3>
@@ -473,23 +548,28 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
         </div>
         <div class="step">
           <h3>Teacher cost</h3>
-          <p>Course hours are spread over the course's days to get the hours taught in August. Consultants are paid per hour. Full-time teachers are charged at their monthly salary ÷ available hours.</p>
-          <div class="formula">Hours in Aug × Hourly rate</div>
+          <p>Course hours are spread over the course's days to get the hours taught in the month. Consultants are paid per hour. Full-time teachers are charged at their monthly salary ÷ available hours.</p>
+          <div class="formula">Hours in month × Hourly rate</div>
         </div>
         <div class="step">
           <h3>Gross margin</h3>
-          <p>Net revenue minus teacher cost. This is the "Contribution" figure on the Client Summary sheet.</p>
+          <p>Net revenue minus teacher cost. This is the "Contribution" column on the Client Summary sheets.</p>
         </div>
         <div class="step">
           <h3>Ops team cost</h3>
-          <p>Operations salaries (less full-time teacher cost already charged) are shared across batches in proportion to their revenue.</p>
-          <div class="formula">Ops pool × (Batch revenue ÷ Total revenue)</div>
+          <p>Operations salaries, less full-time teacher cost already charged and less the RTD recruiter, form a monthly pool. 40% is shared by the days each batch was active, 60% by learner-days (learners × active days).</p>
+          <div class="formula">Pool × (40% × batch-days share + 60% × learner-days share)</div>
         </div>
         <div class="step">
           <h3>Contribution after ops</h3>
           <p>What each batch leaves over to pay for sales, admin (G&amp;A) and other overheads, and for profit.</p>
         </div>
       </div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2>About RTD</h2>
+      <div class="note" id="rtdNote"></div>
     </div>
     <div class="section-gap"></div>
     <div class="grid g-2">
@@ -499,24 +579,34 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
         <div id="example"></div>
       </div>
       <div class="card">
-        <h2>Operations cost pool</h2>
-        <p class="sub">How the operations team cost to be shared was built.</p>
-        <div class="calc" id="opsPool"></div>
-        <p class="explain">This is shared by revenue, so every batch carries the same ops cost of <b id="opsPct"></b> of its revenue. It lowers every margin by the same number of points. It never changes which batch ranks higher.</p>
+        <h2>Operations cost pool, by month</h2>
+        <p class="sub">How the operations team cost to be shared was built each month.</p>
+        <div class="table-wrap"><table class="matrix" id="opsPoolTable"></table></div>
+        <p class="explain">Because the pool is shared by active days and learner-days rather than revenue, small or low-fee batches carry a bigger ops cost per ₹ of revenue. A 1:1 batch running all month carries a full 40% "batch-day" share with only one learner to pay for it.</p>
       </div>
+    </div>
+    <div class="section-gap"></div>
+    <div class="card">
+      <h2>Tie-out to the books (MIS)</h2>
+      <p class="sub">The model compared with TMC's MIS income statement, as on the MIS Reconciliation sheet. Revenue matches to the rupee. The cost differences are explained in the notes below the table.</p>
+      <div class="table-wrap"><table class="matrix mis" id="misTable"></table></div>
+      <p class="explain">Consultant cost: the books include internal and RTD remedial sessions that are not charged to client batches, and payment timing differs month to month. Ops salaries: the books carry ₹38,000 a month more than the model, the RTD recruiter's salary, which the model keeps out of the B2B ops pool.</p>
     </div>
     <div class="section-gap"></div>
     <div class="card">
       <h2>Glossary</h2>
       <dl class="gloss">
+        <dt>YTD</dt><dd>Year to date: April to August 2026, the first five months of FY 2026-27.</dd>
         <dt>Batch</dt><dd>A group of learners taking one course together (e.g. A1.61 = level A1, batch 61). 1:1 batches have a single learner.</dd>
-        <dt>Group / Non-group</dt><dd>Group clients are Somika and Vinmart Foundation. All other clients are Non-group.</dd>
-        <dt>Gross revenue</dt><dd>The part of the course fee earned in August, before credit notes.</dd>
+        <dt>Group / Non-group</dt><dd>Group clients are Somika and Vinmart Foundation. All other corporate clients are Non-group.</dd>
+        <dt>RTD</dt><dd>RTD training, recorded in the books as "Revenue from RTD – Training". It is not B2B client revenue and appears only in April and July.</dd>
+        <dt>Gross revenue</dt><dd>The part of the course fee earned in the period, before credit notes.</dd>
         <dt>Credit notes</dt><dd>Reductions issued to the client, spread over the same days as the course.</dd>
         <dt>Net revenue</dt><dd>Gross revenue less credit notes.</dd>
-        <dt>Teacher cost</dt><dd>Direct cost of the teacher's hours in August (also called COGS).</dd>
+        <dt>Teacher cost</dt><dd>Direct cost of the teacher's hours in the period (also called COGS).</dd>
         <dt>Gross margin %</dt><dd>(Net revenue − Teacher cost) ÷ Net revenue.</dd>
         <dt>Ops team cost</dt><dd>The batch's share of operations salaries (coordinators, recruiters, full-time teachers' unused time).</dd>
+        <dt>Active days / learner-days</dt><dd>Days the batch ran in the month, and those days × learners. Used to share the ops cost.</dd>
         <dt>Contribution margin %</dt><dd>(Net revenue − Teacher cost − Ops team cost) ÷ Net revenue.</dd>
         <dt>Margin health</dt><dd><span class="chip good"><i>✓</i>Strong</span> 50%+ · <span class="chip moderate"><i>!</i>Moderate</span> 30–50% · <span class="chip thin"><i>▾</i>Thin</span> 0–30% · <span class="chip loss"><i>✕</i>Loss</span> below 0%</dd>
       </dl>
@@ -524,7 +614,7 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; color: var(--t
   </section>
 </main>
 
-<footer>Source: Profitability by Courses Segment – August 2026 (Batch P&amp;L, Revenue, COGS and Payroll sheets). Figures are recalculated in the browser from the batch-level data and tie back to the workbook totals.</footer>
+<footer>Source: TMC YTD Profitability Analysis, FY 2026-27 (April–August 2026): monthly Batch P&amp;L, Revenue, COGS and Payroll sheets, YTD Summary and MIS Reconciliation. Figures are recalculated in the browser from batch-level monthly data and tie back to the workbook totals.</footer>
 
 <div id="tooltip" role="tooltip"></div>
 <div id="drawer-bg"></div>
