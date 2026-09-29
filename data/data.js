@@ -731,60 +731,6 @@ window.TMC_DATA = {
    "contractValue": 225000
   },
   {
-   "month": "Apr",
-   "id": "German B2.1 \u2013 RTD",
-   "client": "RTD",
-   "segment": "RTD",
-   "teacher": "Ankur Kumar",
-   "teacherType": "Consultant",
-   "learners": 0,
-   "grossRevenue": 0,
-   "creditNotes": 0,
-   "netRevenue": 0,
-   "teacherCost": 16880.733944954125,
-   "activeDays": 0,
-   "learnerDays": 0,
-   "opsCost": 0,
-   "contribution": -16880.733944954125,
-   "teacherLines": [
-    {
-     "teacher": "Ankur Kumar",
-     "type": null,
-     "courseHours": 80,
-     "monthHours": 16.880733944954127,
-     "hourlyRate": 1000,
-     "cost": 16880.733944954125
-    }
-   ]
-  },
-  {
-   "month": "Apr",
-   "id": "German B2.4 Remedial \u2013 RTD",
-   "client": "RTD",
-   "segment": "RTD",
-   "teacher": "Medha",
-   "teacherType": "Consultant",
-   "learners": 0,
-   "grossRevenue": 0,
-   "creditNotes": 0,
-   "netRevenue": 0,
-   "teacherCost": 12000,
-   "activeDays": 0,
-   "learnerDays": 0,
-   "opsCost": 0,
-   "contribution": -12000,
-   "teacherLines": [
-    {
-     "teacher": "Medha",
-     "type": null,
-     "courseHours": 12,
-     "monthHours": 12,
-     "hourlyRate": 1000,
-     "cost": 12000
-    }
-   ]
-  },
-  {
    "month": "May",
    "id": "English 1",
    "client": "Vinmart foundation",
@@ -2763,39 +2709,6 @@ window.TMC_DATA = {
    "contractValue": 587957.46928152
   },
   {
-   "month": "Jul",
-   "id": "B1 Nurses",
-   "client": "RTD",
-   "segment": "RTD",
-   "teacher": "-",
-   "teacherType": "-",
-   "learners": 1,
-   "grossRevenue": 50000,
-   "creditNotes": 0,
-   "netRevenue": 50000,
-   "teacherCost": 7336.956521739131,
-   "activeDays": 1,
-   "learnerDays": 1,
-   "opsCost": 38000,
-   "contribution": 4663.043478260872,
-   "teacherLines": [
-    {
-     "teacher": null,
-     "type": null,
-     "courseHours": 72,
-     "monthHours": 12.130434782608695,
-     "hourlyRate": null,
-     "cost": 7336.956521739131
-    }
-   ],
-   "start": "2026-07-01",
-   "end": "2026-07-01",
-   "feePerLearner": 50000,
-   "courseDays": 1,
-   "monthDays": 1,
-   "contractValue": 50000
-  },
-  {
    "month": "Aug",
    "id": "A2.22",
    "client": "SOMIKA",
@@ -3491,10 +3404,7 @@ window.TMC_DATA = {
   "A1.70": 12,
   "B1.8": 4,
   "A1.71": 15,
-  "Korean A1.1 Extra": 0,
-  "German B2.1 \u2013 RTD": 0,
-  "German B2.4 Remedial \u2013 RTD": 0,
-  "B1 Nurses": 1
+  "Korean A1.1 Extra": 0
  },
  "mis": [
   {
@@ -3557,25 +3467,14 @@ window.TMC_DATA = {
    ]
   },
   {
-   "label": "Memo: MIS Revenue from RTD \u2013 Training (not B2B batch)",
-   "values": [
-    0,
-    0,
-    0,
-    50000,
-    0,
-    50000
-   ]
-  },
-  {
-   "label": "MIS \u2013 Total Revenue (ties to MIS)",
+   "label": "MIS \u2013 Total Revenue (B2B + other income)",
    "values": [
     1023382.49,
     922457.5199999999,
     847510.21,
-    877549.97,
+    827549.97,
     989304.86,
-    4660205.05
+    4610205.05
    ]
   },
   {
@@ -3594,25 +3493,25 @@ window.TMC_DATA = {
    ]
   },
   {
-   "label": "Memo \u2013 consultant cost on non-revenue sessions (table below)",
+   "label": "Memo \u2013 consultant cost on non-revenue sessions (internal 1:1 sessions)",
    "values": [
-    44682.628477660925,
+    14113.82113821138,
     14977.932636469222,
-    18494.773519163762,
-    43521.609298789954,
-    34634.25597414849,
-    156311.19990623236
+    14494.773519163762,
+    33367.7631449438,
+    31588.102127994644,
+    108542.3925667828
    ]
   },
   {
    "label": "Model \u2013 Total consultant cost",
    "values": [
-    343098.94604088494,
+    312530.1387014354,
     292794.71986135456,
-    191035.6954416266,
-    213149.00728448416,
-    226309.0411006524,
-    1266387.4097290027
+    187035.6954416266,
+    202995.161130638,
+    223262.88725449855,
+    1218618.602389553
    ]
   },
   {
@@ -3629,23 +3528,23 @@ window.TMC_DATA = {
   {
    "label": "Variance (Model \u2013 MIS)",
    "values": [
-    -1495.9039591150358,
+    -32064.711298564565,
     47044.71986135456,
-    -7514.304558373406,
-    18189.007284484163,
-    9159.041100652394,
-    65382.55972900268
+    -11514.304558373406,
+    8035.161130638007,
+    6112.88725449855,
+    17613.75238955315
    ]
   },
   {
    "label": "Variance %",
    "values": [
-    -0.004341051408966315,
+    -0.09305046578195979,
     0.19143324460368083,
-    -0.03784590560752156,
-    0.09329609809439969,
-    0.04217840709487632,
-    0.05443987984644914
+    -0.05799196453474392,
+    0.04121440875378543,
+    0.028150528457280912,
+    0.014665846178350693
    ]
   },
   {
@@ -3697,7 +3596,7 @@ window.TMC_DATA = {
    ]
   },
   {
-   "label": "Variance (Model \u2013 MIS)",
+   "label": "Variance (Model \u2013 MIS) \u2013 \u20b938,000/month staff cost outside the B2B business",
    "values": [
     -38000,
     -38000,
@@ -3717,20 +3616,20 @@ window.TMC_DATA = {
     511916.3175632242,
     522816.7872248854,
     432540.9219224628,
-    499964.35450743337,
+    454627.39798569423,
     462545.78512650396,
-    2429784.16634451
+    2384447.2098227707
    ]
   },
   {
    "label": "Model \u2013 Direct cost incl. non-batch teacher memo",
    "values": [
-    556598.946040885,
+    526030.1387014355,
     537794.7198613547,
-    451035.6954416266,
-    543485.9638062234,
-    497180.0411006524,
-    2586095.366250742
+    447035.6954416266,
+    487995.16113063804,
+    494133.8872544986,
+    2492989.6023895536
    ]
   },
   {
@@ -3747,23 +3646,23 @@ window.TMC_DATA = {
   {
    "label": "Variance (Model incl. memo \u2013 MIS)",
    "values": [
-    -39495.90395911492,
+    -70064.71129856445,
     9044.719861354679,
-    -45514.304558373406,
-    25525.963806223357,
-    -28840.958899347577,
-    -79280.48374925787
+    -49514.304558373406,
+    -29964.838869361964,
+    -31887.112745501392,
+    -172386.24761044653
    ]
   },
   {
    "label": "Variance %",
    "values": [
-    -0.06625775069037237,
+    -0.11753953468741501,
     0.017105853165682607,
-    -0.09166107050321902,
-    0.049281727944674024,
-    -0.054828531369180276,
-    -0.029744579455560784
+    -0.09971665402955071,
+    -0.057851646593099784,
+    -0.060619467180020176,
+    -0.06467614974842911
    ]
   },
   {
@@ -3772,9 +3671,9 @@ window.TMC_DATA = {
     508265.8,
     399640.12000000005,
     414969.12000000005,
-    377585.37999999995,
+    372922.33999999997,
     526758.8799999999,
-    2227219.3
+    2222556.26
    ]
   },
   {

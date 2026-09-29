@@ -2,14 +2,15 @@
 
 Usage: python3 scripts/extract_data.py <path-to-YTD-workbook.xlsx>
 
-Reads each month's "<Mon> Batch P&L", "<Mon> Revenue" and "<Mon> Cogs" sheets, the
-"YTD Batch P&L" (for YTD learner counts) and the "MIS Reconciliation" sheet.
-Only batch-level figures and aggregate payroll totals are exported; individual
-payroll lines and the names on internal (non-client) sessions are left out.
+B2B only: RTD rows, if any, are dropped. Reads each month's "<Mon> Batch P&L" and
+"<Mon> Revenue & Cogs" sheets, the "YTD Batch P&L" (for YTD learner counts) and the
+"MIS Reconciliation" sheet. Only batch-level figures and aggregate payroll totals are
+exported; individual payroll lines and the names on internal sessions are left out.
 """
 import calendar
 import datetime as dt
 import json
+import re
 import sys
 
 import openpyxl
@@ -35,7 +36,10 @@ def clean(v):
 
 months, rows = [], []
 for m in MONTHS:
-    pl, rev, cogs = wb[f"{m} Batch P&L"], wb[f"{m} Revenue"], wb[f"{m} Cogs"]
+    pl, rc = wb[f"{m} Batch P&L"], wb[f"{m} Revenue & Cogs"]
+    # Revenue and COGS share one sheet; find each section by its header row.
+    hdr = lambda second: next(r for r in range(1, rc.max_row + 1) if rc.cell(r, 2).value == "BATCH ID" and rc.cell(r, 3).value == second)
+    rev_hdr, cogs_hdr = hdr("Client Code"), hdr("Teacher")
 
     total_row = next(r for r in range(5, pl.max_row + 1) if pl.cell(r, 1).value == "Total")
     side = {clean(pl.cell(r, 20).value): pl.cell(r, 21).value for r in range(5, 12) if pl.cell(r, 20).value}
@@ -54,26 +58,24 @@ for m in MONTHS:
     })
 
     rev_rows = {}
-    for r in range(6, rev.max_row + 1):
-        bid = clean(rev.cell(r, 2).value)
-        if bid and not str(bid).endswith(".r"):
+    for r in range(rev_hdr + 1, cogs_hdr):
+        bid = clean(rc.cell(r, 2).value)
+        if bid and not str(bid).endswith(".r") and isinstance(rc.cell(r, 12).value, (int, float)):
             rev_rows[bid] = r
     cogs_lines = {}
-    for r in range(6, cogs.max_row + 1):
-        bid = clean(cogs.cell(r, 2).value)
-        if not bid or not isinstance(cogs.cell(r, 15).value, (int, float)):
+    for r in range(cogs_hdr + 1, rc.max_row + 1):
+        bid = clean(rc.cell(r, 2).value)
+        if not bid or not isinstance(rc.cell(r, 15).value, (int, float)):
             continue
-        teacher, ttype = clean(cogs.cell(r, 3).value), clean(cogs.cell(r, 4).value)
-        if teacher == "RTD":  # RTD remedial rows are shifted one column to the right
-            teacher, ttype = ttype, None
-        rate = cogs.cell(r, 14).value
+        teacher, ttype = clean(rc.cell(r, 3).value), clean(rc.cell(r, 4).value)
+        rate = rc.cell(r, 14).value
         cogs_lines.setdefault(bid, []).append({
             "teacher": teacher,
             "type": ttype if ttype in ("Full Time", "Consultant") else None,
-            "courseHours": num(cogs.cell(r, 10).value),
-            "monthHours": num(cogs.cell(r, 11).value),
+            "courseHours": num(rc.cell(r, 10).value),
+            "monthHours": num(rc.cell(r, 11).value),
             "hourlyRate": rate if isinstance(rate, (int, float)) and rate > 0 else None,
-            "cost": cogs.cell(r, 15).value,
+            "cost": rc.cell(r, 15).value,
         })
 
     for r in range(5, total_row):
@@ -81,6 +83,8 @@ for m in MONTHS:
         if not bid:
             continue
         client = clean(pl.cell(r, 2).value)
+        if client == "RTD" or clean(pl.cell(r, 3).value) == "RTD":
+            continue  # B2B analysis only
         net = num(pl.cell(r, 9).value)
         teacher_cost = num(pl.cell(r, 10).value)
         ops = num(pl.cell(r, 15).value)
@@ -89,7 +93,7 @@ for m in MONTHS:
             "month": m,
             "id": bid,
             "client": client,
-            "segment": clean(pl.cell(r, 3).value) or ("RTD" if client == "RTD" else "Unmapped"),
+            "segment": clean(pl.cell(r, 3).value) or "Unmapped",
             "teacher": clean(pl.cell(r, 4).value) or "-",
             "teacherType": clean(pl.cell(r, 5).value) or "-",
             "learners": num(pl.cell(r, 6).value),
@@ -100,18 +104,18 @@ for m in MONTHS:
             "activeDays": num(pl.cell(r, 13).value),
             "learnerDays": num(pl.cell(r, 14).value),
             "opsCost": ops,
-            # Contribution recomputed so rows with blank P&L formulas (RTD) still tie to the YTD Summary.
+            # Recomputed from the parts so every row ties to the YTD Summary.
             "contribution": net - teacher_cost - ops,
             "teacherLines": cogs_lines.get(bid, []),
         }
         if rr:
             row.update({
-                "start": iso(rev.cell(rr, 4).value),
-                "end": iso(rev.cell(rr, 5).value),
-                "feePerLearner": num(rev.cell(rr, 7).value),
-                "courseDays": num(rev.cell(rr, 8).value),
-                "monthDays": num(rev.cell(rr, 9).value),
-                "contractValue": num(rev.cell(rr, 11).value),
+                "start": iso(rc.cell(rr, 4).value),
+                "end": iso(rc.cell(rr, 5).value),
+                "feePerLearner": num(rc.cell(rr, 7).value),
+                "courseDays": num(rc.cell(rr, 8).value),
+                "monthDays": num(rc.cell(rr, 9).value),
+                "contractValue": num(rc.cell(rr, 11).value),
             })
         rows.append(row)
 
@@ -130,6 +134,11 @@ for r in range(5, 37):
     label = mis_ws.cell(r, 1).value
     if not label:
         continue
+    # Keep staff names out of the published labels; the session table itself is not exported.
+    label = re.sub(r"\s*\((Vaishali)\)", "", label).replace("(table below)", "(internal 1:1 sessions)")
+    # B2B-only presentation: describe the non-B2B items without naming them.
+    label = label.replace("MIS – Total Revenue (excl. RTD)", "MIS – Total Revenue (B2B + other income)")
+    label = re.sub(r"Rs 38,000/month = RTD recruiter, excluded from B2B model", "₹38,000/month staff cost outside the B2B business", label)
     vals = [mis_ws.cell(r, c).value for c in range(3, 9)]  # Apr..Aug + YTD
     mis.append({"label": label, "values": vals if any(isinstance(v, (int, float)) for v in vals) else None})
 

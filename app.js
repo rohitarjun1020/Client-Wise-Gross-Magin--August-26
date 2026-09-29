@@ -1,11 +1,10 @@
-/* TMC client-wise profitability dashboard (FY 2026-27 YTD). Plain JS + inline SVG, no build step. */
+/* TMC B2B client-wise profitability dashboard (FY 2026-27 YTD). Plain JS + inline SVG, no build step. */
 (function () {
   "use strict";
 
   const D = window.TMC_DATA;
   const MONTHS = D.months;
   const MONTH = Object.fromEntries(MONTHS.map((m) => [m.key, m]));
-  const HRS_PER_DAY = 8; // model: full-time teacher capacity is 8 teaching hours a day
 
   // ---------- derived rows (one per batch per month) ----------
   const rows = D.rows.map((r) => {
@@ -19,8 +18,8 @@
   });
 
   // ---------- state ----------
-  const state = { tab: "overview", period: "YTD", segment: "All", client: "All", teacherType: "All", teacher: "All", basis: "net", matrix: "netRevenue" };
-  const sorts = { client: { key: "netRevenue", dir: -1 }, batch: { key: "m", dir: -1 }, teacher: { key: "netRevenue", dir: -1 } };
+  const state = { tab: "overview", period: "YTD", segment: "All", client: "All", basis: "net", matrix: "netRevenue" };
+  const sorts = { client: { key: "netRevenue", dir: -1 }, batch: { key: "netRevenue", dir: -1 } };
 
   // ---------- formatting ----------
   const inr = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
@@ -37,15 +36,7 @@
   const plural = (n, w, p) => `${n} ${n === 1 ? w : p || w + "s"}`;
   const fit = (s, px, cw) => { const n = Math.floor(px / cw); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + "…" : s; };
 
-  const STATUS = {
-    good: { label: "Strong", icon: "✓", color: "var(--good)" },
-    moderate: { label: "Moderate", icon: "!", color: "var(--warning)" },
-    thin: { label: "Thin", icon: "▾", color: "var(--serious)" },
-    loss: { label: "Loss", icon: "✕", color: "var(--critical)" },
-  };
-  const statusOf = (m) => (m >= 0.5 ? "good" : m >= 0.3 ? "moderate" : m >= 0 ? "thin" : "loss");
-  const chip = (m) => { const k = statusOf(m); return `<span class="chip ${k}"><i>${STATUS[k].icon}</i>${STATUS[k].label}</span>`; };
-  const segColor = (s) => (s === "Group" ? "var(--seg-group)" : s === "RTD" ? "var(--seg-rtd)" : "var(--seg-non)");
+  const segColor = (s) => (s === "Group" ? "var(--seg-group)" : "var(--seg-non)");
 
   const isYTD = () => state.period === "YTD";
   const periodLabel = () => (isYTD() ? `YTD (${MONTHS[0].key}–${MONTHS[MONTHS.length - 1].key})` : MONTH[state.period].long);
@@ -56,11 +47,7 @@
 
   // ---------- filtering & aggregation ----------
   function passes(r) {
-    const seg = state.segment;
-    return (seg === "All" || (seg === "B2B" ? r.segment === "Group" || r.segment === "Non-group" : r.segment === seg)) &&
-      (state.client === "All" || r.client === state.client) &&
-      (state.teacherType === "All" || r.teacherType === state.teacherType) &&
-      (state.teacher === "All" || r.teacher === state.teacher);
+    return (state.segment === "All" || r.segment === state.segment) && (state.client === "All" || r.client === state.client);
   }
   const inPeriod = (r) => isYTD() || r.month === state.period;
   const filtered = () => rows.filter((r) => inPeriod(r) && passes(r));
@@ -259,17 +246,13 @@
   function renderFilters() {
     document.getElementById("fPeriod").innerHTML = [["YTD", "YTD"], ...MONTHS.map((m) => [m.key, m.key])]
       .map(([v, l]) => `<button data-v="${v}" aria-pressed="${state.period === v}">${l}</button>`).join("");
-    [["fSegment", "segment"], ["fTeacher", "teacherType"], ["fBasis", "basis"], ["fMatrix", "matrix"]].forEach(([id, key]) => {
+    [["fSegment", "segment"], ["fBasis", "basis"], ["fMatrix", "matrix"]].forEach(([id, key]) => {
       document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === state[key])));
     });
     const sel = document.getElementById("fClient");
-    const segOk = (r) => passes(Object.assign({}, r, { client: state.client === "All" ? r.client : state.client, teacher: state.teacher === "All" ? r.teacher : state.teacher, teacherType: state.teacherType === "All" ? r.teacherType : state.teacherType }));
-    const clients = [...new Set(rows.filter(segOk).map((r) => r.client))];
+    const clients = [...new Set(rows.filter((r) => state.segment === "All" || r.segment === state.segment).map((r) => r.client))];
     if (state.client !== "All" && !clients.includes(state.client)) state.client = "All";
     sel.innerHTML = `<option value="All">All clients</option>` + clients.map((c) => `<option ${c === state.client ? "selected" : ""}>${esc(c)}</option>`).join("");
-    const pill = document.getElementById("teacherPill");
-    pill.hidden = state.teacher === "All";
-    pill.innerHTML = `Teacher: ${esc(state.teacher)} <button type="button" class="reset" id="clearTeacher" aria-label="Clear teacher filter" style="text-decoration:none">×</button>`;
   }
 
   // ---------- OVERVIEW ----------
@@ -305,7 +288,7 @@
     }).join("");
     document.getElementById("hundredKeys").innerHTML = !a.netRevenue ? `<div class="k"><span>There is no revenue in this selection, only costs.</span></div>` : parts.map((x) =>
       `<div class="k"><i class="swatch" style="background:${x.c}"></i><div><b class="num ${x.v < 0 ? "neg" : ""}">${x.v < 0 ? "−" : ""}₹${Math.abs(per100(x.v)).toFixed(1)}</b><span>${x.k}: ${x.d}</span></div></div>`).join("") +
-      (a.contribution < 0 ? `<div class="k"><div><span class="neg">Costs are higher than revenue for this selection, so it runs at a loss.</span></div></div>` : "");
+      (a.contribution < 0 ? `<div class="k"><div><span>Costs are higher than revenue for this selection.</span></div></div>` : "");
 
     document.getElementById("waterfallSub").textContent = `How ${periodLabel()} billing becomes the contribution we keep, step by step.`;
     renderWaterfall(a);
@@ -351,45 +334,39 @@
     el.innerHTML = s + "</svg>";
   }
 
+  // Plain facts only: no ratings or recommendations.
   function renderInsights(list, a) {
     const el = document.getElementById("insights");
     if (!list.length) { el.innerHTML = `<li><div class="ic">ℹ︎</div><p>Nothing matches these filters for ${periodLabel()}.</p></li>`; return; }
     const out = [];
     const byClient = [...groupBy(list, "client")].map(([c, l]) => ({ c, a: agg(l) })).sort((x, y) => y.a.netRevenue - x.a.netRevenue);
     if (byClient.length > 1 && a.netRevenue > 0) {
-      const top = byClient[0], share = top.a.netRevenue / a.netRevenue;
-      out.push(["🎯", `<b>${esc(top.c)} brings ${pct(share, 0)} of revenue.</b> ${share > 0.5 ? "The business depends heavily on one client. Winning more Non-group clients would reduce this risk." : "Revenue is reasonably spread across clients."}`]);
+      const top = byClient[0], seg = [...groupBy(list, "segment")].map(([s, l]) => `${s} ${pct(agg(l).netRevenue / a.netRevenue, 0)}`);
+      out.push(["◔", `<b>${esc(top.c)} accounts for ${pct(top.a.netRevenue / a.netRevenue, 0)} of net revenue</b> (${rsShort(top.a.netRevenue)} of ${rsShort(a.netRevenue)}).${seg.length > 1 ? ` By segment: ${seg.join(", ")}.` : ""}`]);
     }
-    if (a.netRevenue > 0) out.push(["💡", `<b>Teachers cost ₹${((a.teacherCost / a.netRevenue) * 100).toFixed(0)} of every ₹100 earned</b>, leaving a gross margin of ${pct(a.gm)}. After the operations team's share (₹${((a.opsCost / a.netRevenue) * 100).toFixed(0)} per ₹100), <b>${pct(a.cm)}</b> is left as contribution.`]);
-
+    if (a.netRevenue > 0) out.push(["₹", `<b>Of every ₹100 of net revenue, ₹${((a.teacherCost / a.netRevenue) * 100).toFixed(0)} went to teacher cost</b> and ₹${((a.opsCost / a.netRevenue) * 100).toFixed(0)} to the operations team's share. Gross margin is ${pct(a.gm)}; contribution margin is ${pct(a.cm)}.`]);
     if (isYTD()) {
       const mm = MONTHS.map((m) => ({ m, a: agg(list.filter((r) => r.month === m.key), false) })).filter((x) => x.a.netRevenue > 0);
       if (mm.length > 1) {
-        const f = mm[0], l = mm[mm.length - 1], best = [...mm].sort((x, y) => y.a.cm - x.a.cm)[0];
+        const hi = [...mm].sort((x, y) => y.a.cm - x.a.cm)[0], lo = [...mm].sort((x, y) => x.a.cm - y.a.cm)[0];
         const revs = mm.map((x) => x.a.netRevenue);
-        out.push(["📈", `<b>Contribution margin went from ${pct(f.a.cm, 0)} in ${f.m.key} to ${pct(l.a.cm, 0)} in ${l.m.key}</b>, best in ${best.m.key} (${pct(best.a.cm, 0)}). Monthly revenue ranged ${rsShort(Math.min(...revs))}–${rsShort(Math.max(...revs))}.`]);
+        out.push(["▤", `<b>Contribution margin by month ranged from ${pct(lo.a.cm, 0)} (${lo.m.key}) to ${pct(hi.a.cm, 0)} (${hi.m.key}).</b> Monthly net revenue ranged from ${rsShort(Math.min(...revs))} to ${rsShort(Math.max(...revs))}.`]);
       }
     }
-    const lossClients = byClient.filter((x) => x.a.contribution < 0).sort((x, y) => x.a.contribution - y.a.contribution);
-    if (lossClients.length) out.push(["🔻", `<b>${plural(lossClients.length, "client")} lost money after ops cost:</b> ${lossClients.map((x) => `${esc(x.c)} (${rsShort(x.a.contribution)})`).join(", ")}.`]);
-    const b = batchAgg(list).filter((x) => x.netRevenue > 0 && x.cm < 0.3).sort((x, y) => x.cm - y.cm);
-    if (b.length) out.push(["⚠️", `<b>${plural(b.length, "batch", "batches")} under 30% contribution:</b> ${b.slice(0, 5).map((x) => `${esc(x.id)} (${pct(x.cm, 0)})`).join(", ")}${b.length > 5 ? "…" : ""}. The usual causes are small batch size (1:1s), a high teacher cost, or a batch that ran only a few days in the month.`]);
-    const ft = list.filter((r) => r.teacherType === "Full Time"), co = list.filter((r) => r.teacherType === "Consultant");
-    if (ft.length && co.length) {
-      const af = agg(ft), ac = agg(co);
-      if (af.netRevenue && ac.netRevenue) out.push(["👩‍🏫", `<b>Full-time teachers cost ${pct(af.teacherCost / af.netRevenue, 0)} of revenue, consultants ${pct(ac.teacherCost / ac.netRevenue, 0)}.</b> Full-time batches earn ${pct(af.cm, 0)} contribution vs ${pct(ac.cm, 0)} for consultant batches.`]);
-    }
-    const rtd = list.filter((r) => r.segment === "RTD");
-    if (rtd.length && state.segment !== "RTD") {
-      const ar = agg(rtd);
-      out.push(["🩺", `<b>RTD shows up only in ${[...new Set(rtd.map((r) => r.month))].join(" and ")}.</b> It brought ${rsShort(ar.netRevenue)} of revenue and ended at ${rsShort(ar.contribution)} after remedial teaching and the RTD recruiter's salary. Choose "B2B only" to leave it out.`]);
+    const neg = byClient.filter((x) => x.a.contribution < 0).sort((x, y) => x.a.contribution - y.a.contribution);
+    if (neg.length) out.push(["−", `<b>Negative contribution after ops cost:</b> ${neg.map((x) => `${esc(x.c)} (${rsShort(x.a.contribution)})`).join(", ")}.`]);
+    const bs = batchAgg(list).filter((x) => x.netRevenue > 0);
+    if (bs.length > 3) {
+      const sorted = [...bs].sort((x, y) => y.cm - x.cm), f = (x) => `${esc(x.id)} (${pct(x.cm, 0)})`;
+      out.push(["↕", `<b>Highest contribution margins:</b> ${sorted.slice(0, 3).map(f).join(", ")}. <b>Lowest:</b> ${sorted.slice(-3).reverse().map(f).join(", ")}.`]);
     }
     if (a.creditNotes < 0) {
       const cn = batchAgg(list.filter((r) => r.creditNotes < 0));
-      out.push(["↩️", `<b>Credit notes cut ${rs(-a.creditNotes)} from billing</b> (${cn.map((x) => esc(x.id)).join(", ")}), ${pct(-a.creditNotes / a.grossRevenue)} of billing.`]);
+      out.push(["↩", `<b>Credit notes reduced billing by ${rs(-a.creditNotes)}</b> (${cn.map((x) => esc(x.id)).join(", ")}), ${pct(-a.creditNotes / a.grossRevenue)} of billing.`]);
     }
-    el.innerHTML = out.slice(0, 7).map(([ic, t]) => `<li><div class="ic" aria-hidden="true">${ic}</div><p>${t}</p></li>`).join("");
+    el.innerHTML = out.map(([ic, t]) => `<li><div class="ic" aria-hidden="true">${ic}</div><p>${t}</p></li>`).join("");
   }
+
 
   // ---------- TREND ----------
   function renderTrend() {
@@ -403,7 +380,7 @@
     const clients = [...groupBy(all, "client")].map(([c, l]) => ({ c, seg: l[0].segment, l, ytd: agg(l, true) })).sort((x, y) => y.ytd.netRevenue - x.ytd.netRevenue);
     const cell = (a, has) => {
       if (!has) return `<span class="dim">–</span>`;
-      if (isPct) return a.netRevenue ? `${pct(a[k])}<i class="dot" style="background:${STATUS[statusOf(a[k])].color}" title="${STATUS[statusOf(a[k])].label}"></i>` : `<span class="dim">no revenue</span>`;
+      if (isPct) return a.netRevenue ? pct(a[k]) : `<span class="dim">no revenue</span>`;
       return `<span class="${a[k] < 0 ? "neg" : ""}">${rs(a[k])}</span>`;
     };
     const t = document.getElementById("matrix");
@@ -423,7 +400,7 @@
     const lines = [
       ["Batches running", (a) => a.batches], ["Learners", (a) => a.learners], ["Client billing", (a) => rs(a.grossRevenue)], ["Credit notes", (a) => (a.creditNotes ? `<span class="neg">${rs(a.creditNotes)}</span>` : "–")],
       ["Net revenue", (a) => `<b>${rs(a.netRevenue)}</b>`], ["Teacher cost", (a) => rs(a.teacherCost)], ["Gross margin", (a) => rs(a.grossMargin)], ["Gross margin %", (a) => (a.netRevenue ? pct(a.gm) : "–")],
-      ["Ops team cost", (a) => rs(a.opsCost)], ["Contribution", (a) => `<b class="${a.contribution < 0 ? "neg" : ""}">${rs(a.contribution)}</b>`], ["Contribution %", (a) => (a.netRevenue ? `${pct(a.cm)} ${chip(a.cm)}` : "–")],
+      ["Ops team cost", (a) => rs(a.opsCost)], ["Contribution", (a) => `<b class="${a.contribution < 0 ? "neg" : ""}">${rs(a.contribution)}</b>`], ["Contribution %", (a) => (a.netRevenue ? pct(a.cm) : "–")],
     ];
     mt.innerHTML = `<thead><tr><th class="l nosort">Measure</th>${cols.map((c) => `<th class="nosort"${hl(c.key)}>${c.label}</th>`).join("")}</tr></thead><tbody>${lines.map(([n, f]) => `<tr style="cursor:default"><td class="l">${n}</td>${cols.map((c) => `<td class="num"${hl(c.key)}>${c.key !== "YTD" && !c.a.rows ? '<span class="dim">–</span>' : f(c.a)}</td>`).join("")}</tr>`).join("")}</tbody>`;
   }
@@ -469,15 +446,14 @@
       el.innerHTML = s + "</svg>";
     }
 
-    const order = ["Group", "Non-group", "RTD"];
+    const order = ["Group", "Non-group"];
     const segs = [...groupBy(list, "segment")].map(([sg, l]) => Object.assign({ seg: sg }, agg(l))).sort((x, y) => order.indexOf(x.seg) - order.indexOf(y.seg));
     document.getElementById("segCompare").innerHTML = !segs.length || !total.netRevenue ? `<div class="empty">No revenue in this selection.</div>` : `
       <div class="split" style="height:26px">${segs.filter((sg) => sg.netRevenue > 0).map((sg) => `<div style="flex:${sg.netRevenue} 1 0;background:${segColor(sg.seg)}" data-tip="${tipId(`<div class="tt-title">${sg.seg}</div>${ttRow("Net revenue", rs(sg.netRevenue))}${ttRow("Share", pct(sg.netRevenue / total.netRevenue))}`)}"></div>`).join("")}</div>
       <div class="legend">${segs.map((sg) => `<span><i class="swatch" style="background:${segColor(sg.seg)}"></i>${sg.seg}: ${pct(sg.netRevenue / total.netRevenue, 0)} of revenue</span>`).join("")}</div>
       <div class="table-wrap"><table><thead><tr><th class="nosort l">Measure</th>${segs.map((sg) => `<th class="nosort">${sg.seg}</th>`).join("")}</tr></thead><tbody style="cursor:default">
         ${[["Batches", (x) => x.batches], ["Learners", (x) => x.learners], ["Net revenue", (x) => rs(x.netRevenue)], ["Revenue per learner", (x) => (x.learners ? rs(x.netRevenue / x.learners) : "–")],
-           ["Teacher cost", (x) => rs(x.teacherCost)], ["Ops team cost", (x) => rs(x.opsCost)], ["Gross margin %", (x) => pct(x.gm)], ["Contribution", (x) => `<span class="${x.contribution < 0 ? "neg" : ""}">${rs(x.contribution)}</span>`], ["Contribution %", (x) => pct(x.cm)],
-           ["Health", (x) => chip(mOf(x))]]
+           ["Teacher cost", (x) => rs(x.teacherCost)], ["Ops team cost", (x) => rs(x.opsCost)], ["Gross margin %", (x) => pct(x.gm)], ["Contribution", (x) => `<span class="${x.contribution < 0 ? "neg" : ""}">${rs(x.contribution)}</span>`], ["Contribution %", (x) => pct(x.cm)]]
           .map(([k, f]) => `<tr><td class="l">${k}</td>${segs.map((sg) => `<td class="num">${f(sg)}</td>`).join("")}</tr>`).join("")}
       </tbody></table></div>`;
 
@@ -486,7 +462,7 @@
       return `<div class="card client-card" data-client="${esc(r.client)}" tabindex="0">
         <div class="ch"><h3>${esc(r.client)}</h3><span class="tag"><i class="swatch" style="background:${segColor(r.segment)}"></i>${r.segment}</span></div>
         <div class="big num">${rs(r.netRevenue)}</div>
-        <div style="font-size:12px;color:var(--text-secondary)">${pct(r.share)} of ${periodShort()} revenue · ${basisLabel().split(" (")[0]} <b class="num" style="color:var(--text-primary)">${pct(mOf(r))}</b> ${chip(mOf(r))}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">${pct(r.share)} of ${periodShort()} revenue · ${basisLabel().split(" (")[0]} <b class="num" style="color:var(--text-primary)">${pct(mOf(r))}</b></div>
         <div class="split">${bar.map((x) => `<div style="flex:${x[0]} 1 0;background:${x[1]}" title="${x[2]}"></div>`).join("")}</div>
         <div class="mini-stats">
           <div>Batches<b class="num">${r.batches}</b></div>
@@ -530,12 +506,11 @@
     const withRev = bs.filter((b) => b.netRevenue > 0), noRev = bs.filter((b) => b.netRevenue <= 0);
     document.getElementById("batchChartSub").textContent = `${basisLabel()} for each batch in ${periodLabel()}, highest first. Hover for details. Click a bar to open the batch.` +
       (noRev.length ? ` ${plural(noRev.length, "entry", "entries")} with cost but no revenue (${noRev.map((b) => b.id).join(", ")}) are listed in the table only.` : "");
-    document.getElementById("statusLegend").innerHTML = Object.keys(STATUS).map((k) => `<span class="chip ${k}"><i>${STATUS[k].icon}</i>${STATUS[k].label} ${k === "good" ? "50%+" : k === "moderate" ? "30–50%" : k === "thin" ? "0–30%" : "below 0%"}</span>`).join("");
     const el = document.getElementById("batchMarginChart");
     if (!withRev.length) empty(el);
     else hbarChart(el, [...withRev].sort((a, b) => b.m - a.m).map((b) => ({
       label: b.id, sub: `${b.client} · ${plural(b.learners, "learner")}${isYTD() ? " · " + b.months : ""}`,
-      value: b.m, color: STATUS[statusOf(b.m)].color, valueLabel: `${STATUS[statusOf(b.m)].icon} ${pct(b.m)}`,
+      value: b.m, color: state.basis === "gross" ? "var(--revenue)" : "var(--contrib)", valueLabel: pct(b.m),
       tip: aggTip(`${esc(b.id)} · ${esc(b.client)}`, b, `<div class="tt-row" style="margin-top:4px"><span>${esc(b.teacher)} · ${b.months}</span></div>`), click: b.id,
     })), { tick: (t) => Math.round(t * 100) + "%", labelW: 180, aria: "Margin by batch" });
 
@@ -549,7 +524,7 @@
       ["learners", "Learners", (b) => b.learners], ["grossRevenue", "Billing", (b) => rs(b.grossRevenue)], ["creditNotes", "Credit notes", (b) => (b.creditNotes ? `<span class="neg">${rs(b.creditNotes)}</span>` : "–")],
       ["netRevenue", "Net revenue", (b) => rs(b.netRevenue)], ["teacherCost", "Teacher cost", (b) => rs(b.teacherCost)], ["gm", "GM %", (b) => (b.netRevenue ? pct(b.gm) : "–")],
       ["opsCost", "Ops cost", (b) => rs(b.opsCost)], ["contribution", "Contribution", (b) => `<span class="${b.contribution < 0 ? "neg" : ""}">${rs(b.contribution)}</span>`],
-      ["cm", "Contrib. %", (b) => (b.netRevenue ? `<span class="${b.cm < 0 ? "neg" : ""}">${pct(b.cm)}</span>` : "–")], ["m", "Health", (b) => (b.netRevenue ? chip(b.m) : '<span class="tag">No revenue</span>'), "l"],
+      ["cm", "Contrib. %", (b) => (b.netRevenue ? `<span class="${b.cm < 0 ? "neg" : ""}">${pct(b.cm)}</span>` : "–")],
     );
     const tot = agg(list); tot.m = mOf(tot); tot.__skip = ["client", "teacher", "monthCount"];
     renderTable("batchTable", cols, bs, sorts.batch, tot, (b) => `data-batch="${esc(b.id)}"`);
@@ -577,8 +552,7 @@
       return `<span class="k">${esc(l.teacher || r.teacher)}: ${l.monthHours.toFixed(1)} of ${l.courseHours} hrs × ${rs(rate)}/hr${l.hourlyRate ? "" : " (salary basis)"}</span><span class="v">${rs(l.cost)}</span>`;
     }).join("");
     let opsLines;
-    if (r.segment === "RTD") opsLines = `<span class="k">RTD recruiter salary charged directly</span><span class="v">${rs(r.opsCost)}</span>`;
-    else {
+    {
       const rt = opsRates(r.month);
       opsLines = `<span class="k">40% share: ${r.activeDays} active days × ${rs(rt.perDay)}/day</span><span class="v">${rs(rt.perDay * r.activeDays)}</span>
         <span class="k">60% share: ${inr.format(r.learnerDays)} learner-days × ${rs(rt.perLearnerDay)}</span><span class="v">${rs(rt.perLearnerDay * r.learnerDays)}</span>`;
@@ -611,13 +585,13 @@
       <div class="table-wrap"><table class="month-table"><thead><tr><th class="l nosort">Month</th><th class="nosort">Learners</th><th class="nosort">Net revenue</th><th class="nosort">Teacher</th><th class="nosort">Ops</th><th class="nosort">Contribution</th><th class="nosort">CM %</th></tr></thead>
       <tbody>${brs.map((x) => `<tr><td class="l">${x.month}</td><td class="num">${x.learners}</td><td class="num">${rs(x.netRevenue)}</td><td class="num">${rs(x.teacherCost)}</td><td class="num">${rs(x.opsCost)}</td><td class="num ${x.contribution < 0 ? "neg" : ""}">${rs(x.contribution)}</td><td class="num">${x.netRevenue ? pct(x.cm, 0) : "–"}</td></tr>`).join("")}</tbody>
       <tfoot><tr><td class="l">${periodShort()}</td><td></td><td class="num">${rs(b.netRevenue)}</td><td class="num">${rs(b.teacherCost)}</td><td class="num">${rs(b.opsCost)}</td><td class="num ${b.contribution < 0 ? "neg" : ""}">${rs(b.contribution)}</td><td class="num">${b.netRevenue ? pct(b.cm, 0) : "–"}</td></tr></tfoot></table></div>` : "";
-    const canSim = r.segment !== "RTD" && r.learners > 0 && r.grossRevenue > 0 && r.activeDays > 0;
+    const canSim = r.learners > 0 && r.grossRevenue > 0 && r.activeDays > 0;
     document.getElementById("drawerBody").innerHTML = `
       <h2>${esc(b.id)}</h2>
       <div style="color:var(--text-secondary);font-size:13px">${esc(b.client)} · ${b.segment} · ${esc(b.teacher)}${b.teacherType !== "-" ? ` (${b.teacherType === "Full Time" ? "full-time" : b.teacherType.toLowerCase()})` : ""} · ${periodShort()}: ${b.months}</div>
       ${b.netRevenue ? `<div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:13px">
-        <div>Gross margin <b class="num">${pct(b.gm)}</b> ${chip(b.gm)}</div>
-        <div>Contribution <b class="num">${pct(b.cm)}</b> ${chip(b.cm)}</div></div>` : `<p class="explain">This entry has teaching cost but no revenue in ${periodLabel()}.</p>`}
+        <div>Gross margin <b class="num">${pct(b.gm)}</b></div>
+        <div>Contribution margin <b class="num">${pct(b.cm)}</b></div></div>` : `<p class="explain">This entry has teaching cost but no revenue in ${periodLabel()}.</p>`}
       ${monthRows}
       ${brs.length > 1 ? `<h4 style="margin-top:26px;color:var(--text-primary)">How ${MONTH[r.month].long} was worked out</h4>` : ""}
       ${batchCalcHTML(r)}
@@ -660,80 +634,21 @@
     drawer.scrollTop = 0;
   }
 
-  // ---------- TEACHERS ----------
-  function renderTeachers(list) {
-    const types = [...groupBy(list.filter((r) => r.teacherType === "Full Time" || r.teacherType === "Consultant"), "teacherType")]
-      .map(([t, l]) => Object.assign({ t, teachers: new Set(l.map((r) => r.teacher)).size }, agg(l))).sort((a) => (a.t === "Full Time" ? -1 : 1));
-    document.getElementById("ttCompare").innerHTML = types.map((x) => `
-      <div class="card"><h2><i class="swatch" style="background:${x.t === "Full Time" ? "var(--ft)" : "var(--cons)"};margin-right:8px"></i>${x.t === "Full Time" ? "Full-time teachers" : "Consultant teachers"} · ${periodShort()}</h2>
-      <p class="sub">${x.t === "Full Time" ? "On a monthly salary. A batch is charged only for the hours taught in it." : "Paid per teaching hour."}</p>
-      <div class="mini-stats" style="grid-template-columns:repeat(4,1fr)">
-        <div>Teachers<b class="num">${x.teachers}</b></div><div>Batches<b class="num">${x.batches}</b></div>
-        <div>Hours taught<b class="num">${inr.format(x.hours)}</b></div><div>Net revenue<b class="num">${rsShort(x.netRevenue)}</b></div>
-        <div>Teacher cost<b class="num">${rsShort(x.teacherCost)}</b></div><div>Cost % of rev.<b class="num">${x.netRevenue ? pct(x.teacherCost / x.netRevenue, 0) : "–"}</b></div>
-        <div>Cost / hour<b class="num">${x.hours ? rs(x.teacherCost / x.hours) : "–"}</b></div><div>Contribution<b class="num">${pct(x.cm)}</b></div>
-      </div></div>`).join("") || `<div class="card empty">No batches match these filters.</div>`;
-
-    const named = list.filter((r) => r.teacher && r.teacher !== "-");
-    const teachers = [...groupBy(named, "teacher")].map(([t, l]) => {
-      const a = agg(l);
-      return Object.assign({ teacher: t, teacherType: l[0].teacherType, ids: [...new Set(l.map((r) => r.id))].join(", "), monthsActive: [...new Set(l.map((r) => r.month))] }, a,
-        { cph: a.hours ? a.teacherCost / a.hours : 0, rph: a.hours ? a.netRevenue / a.hours : 0 });
-    });
-
-    const cphEl = document.getElementById("costPerHourChart");
-    const withHours = teachers.filter((x) => x.hours > 0);
-    if (!withHours.length) empty(cphEl);
-    else {
-      cphEl.innerHTML = `<div class="legend"><span><i class="swatch" style="background:var(--ft)"></i>Full-time</span><span><i class="swatch" style="background:var(--cons)"></i>Consultant</span></div><div></div>`;
-      hbarChart(cphEl.lastElementChild, [...withHours].sort((a, b) => a.cph - b.cph).map((x) => ({
-        label: x.teacher, sub: `${plural(x.batches, "batch", "batches")} · ${x.hours.toFixed(0)} hrs`, value: x.cph,
-        color: x.teacherType === "Full Time" ? "var(--ft)" : "var(--cons)", valueLabel: rs(x.cph),
-        tip: `<div class="tt-title">${esc(x.teacher)}</div>${ttRow("Type", x.teacherType)}${ttRow("Batches", esc(fit(x.ids, 160, 6)))}${ttRow("Hours taught", x.hours.toFixed(1))}${ttRow("Teacher cost", rs(x.teacherCost))}${ttRow("Cost per hour", rs(x.cph))}${ttRow("Revenue per hour", rs(x.rph))}`,
-      })), { tick: (t) => "₹" + inr.format(t), labelW: 150, aria: "Teacher cost per teaching hour" });
-    }
-
-    const ft = teachers.filter((x) => x.teacherType === "Full Time").map((x) => Object.assign(x, { cap: x.monthsActive.reduce((s, k) => s + MONTH[k].days * HRS_PER_DAY, 0) })).map((x) => Object.assign(x, { util: x.cap ? x.hours / x.cap : 0 })).sort((a, b) => b.util - a.util);
-    const uEl = document.getElementById("utilChart");
-    if (!ft.length) empty(uEl, "No full-time teachers in this selection.");
-    else hbarChart(uEl, ft.map((x) => ({
-      label: x.teacher, sub: `${plural(x.batches, "batch", "batches")} · ${monthSpan(x.monthsActive)}`, value: x.util, track: 1, color: "var(--ft)",
-      valueLabel: `${pct(x.util, 0)} · ${x.hours.toFixed(0)} of ${inr.format(x.cap)} hrs`,
-      tip: `<div class="tt-title">${esc(x.teacher)}</div>${ttRow("Hours taught", x.hours.toFixed(1))}${ttRow("Capacity (8 hrs/day)", inr.format(x.cap) + " hrs")}${ttRow("Capacity used", pct(x.util))}${ttRow("Months", monthSpan(x.monthsActive))}`,
-    })), { tick: (t) => Math.round(t * 100) + "%", labelW: 120, valW: 150, max: 1, aria: "Full-time teacher capacity used" });
-
-    const cols = [
-      ["teacher", "Teacher", (x) => `<b>${esc(x.teacher)}</b>`, "l"], ["teacherType", "Type", (x) => x.teacherType, "l"], ["batches", "Batches", (x) => x.batches],
-      ["learners", "Learners", (x) => x.learners], ["hours", "Hours", (x) => x.hours.toFixed(1)], ["netRevenue", "Net revenue", (x) => rs(x.netRevenue)],
-      ["teacherCost", "Teacher cost", (x) => rs(x.teacherCost)], ["cph", "Cost / hr", (x) => (x.hours ? rs(x.cph) : "–")], ["rph", "Revenue / hr", (x) => (x.hours ? rs(x.rph) : "–")],
-      ["gm", "GM %", (x) => pct(x.gm)], ["cm", "Contrib. %", (x) => `<span class="${x.cm < 0 ? "neg" : ""}">${pct(x.cm)}</span>`],
-    ];
-    const tot = agg(named); tot.cph = tot.hours ? tot.teacherCost / tot.hours : 0; tot.rph = tot.hours ? tot.netRevenue / tot.hours : 0; tot.__skip = ["teacherType"];
-    renderTable("teacherTable", cols, teachers, sorts.teacher, tot, (x) => `data-teacher="${esc(x.teacher)}"`);
-  }
-
   // ---------- METHOD ----------
   function renderMethod() {
-    const rtd = rows.filter((r) => r.segment === "RTD"), ar = agg(rtd, true);
-    const byM = groupBy(rtd, "month");
-    document.getElementById("rtdNote").innerHTML = `<b>RTD is TMC's own RTD training programme, not a corporate client.</b> The books record it separately as "Revenue from RTD – Training". It appears only in ${[...byM.keys()].map((k) => MONTH[k].long).join(" and ")}:<br>
-      ${[...byM].map(([k, l]) => { const a = agg(l, false); return `• <b>${MONTH[k].long}:</b> ${l.map((r) => esc(r.id)).join(", ")}: revenue ${rs(a.netRevenue)}, teacher cost ${rs(a.teacherCost)}${a.opsCost ? `, recruiter salary ${rs(a.opsCost)}` : ""}, contribution ${rs(a.contribution)}.`; }).join("<br>")}<br>
-      YTD, RTD brought ${rs(ar.netRevenue)} of revenue and ended at <b>${rs(ar.contribution)}</b>. It is included in the YTD totals, as on the YTD Summary. Choose <b>Segment → B2B only</b> to see the corporate business on its own.`;
-
-    const pr = filtered().filter((r) => r.segment !== "RTD");
+    const pr = filtered();
     const ex = pr.filter((r) => r.id === "A1.61").sort((a, b) => monthOrder(b.month) - monthOrder(a.month))[0] || pr[0] || rows.find((r) => r.id === "A1.61");
     document.getElementById("exampleSub").textContent = `Batch ${ex.id} for ${ex.client} in ${MONTH[ex.month].long}, worked through step by step.`;
     document.getElementById("example").innerHTML = batchCalcHTML(ex);
 
     const opsLines = [
-      ["Operations salaries (excl. RTD recruiter)", (m) => rs(m.opsPayroll)],
+      ["Operations salaries (B2B)", (m) => rs(m.opsPayroll)],
       ["Less: full-time teacher cost already in COGS", (m) => `<span class="neg">${rs(-m.ftTeacherCostInCogs)}</span>`],
       ["Pool to share across batches", (m) => `<b>${rs(m.opsPool)}</b>`],
       ["Active batch-days", (m) => inr.format(m.totalActiveDays)],
       ["Learner-days", (m) => inr.format(m.totalLearnerDays)],
       ["Cost per batch-day (40%)", (m) => rs(opsRates(m.key).perDay)],
       ["Cost per learner-day (60%)", (m) => rs(opsRates(m.key).perLearnerDay)],
-      ["RTD recruiter charged to RTD", (m) => { const v = rtd.filter((r) => r.month === m.key).reduce((s, r) => s + r.opsCost, 0); return v ? rs(v) : "–"; }],
     ];
     document.getElementById("opsPoolTable").innerHTML = `<thead><tr><th class="l nosort">Item</th>${MONTHS.map((m) => `<th class="nosort">${m.label}</th>`).join("")}</tr></thead><tbody>${opsLines.map(([n, f]) => `<tr style="cursor:default"><td class="l">${n}</td>${MONTHS.map((m) => `<td class="num">${f(m)}</td>`).join("")}</tr>`).join("")}</tbody>`;
 
@@ -748,7 +663,7 @@
     tips = [];
     renderFilters();
     const list = filtered();
-    ({ overview: renderOverview, trend: renderTrend, clients: renderClients, batches: renderBatches, teachers: renderTeachers, method: renderMethod })[state.tab](list);
+    ({ overview: renderOverview, trend: renderTrend, clients: renderClients, batches: renderBatches, method: renderMethod })[state.tab](list);
   }
   function setTab(tab) {
     state.tab = tab;
@@ -761,25 +676,19 @@
   // ---------- events ----------
   document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => setTab(b.dataset.tab)));
   document.getElementById("fPeriod").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { state.period = b.dataset.v; render(); } });
-  [["fSegment", "segment"], ["fTeacher", "teacherType"], ["fBasis", "basis"], ["fMatrix", "matrix"]].forEach(([id, key]) => {
+  [["fSegment", "segment"], ["fBasis", "basis"], ["fMatrix", "matrix"]].forEach(([id, key]) => {
     document.querySelectorAll(`#${id} button`).forEach((b) => b.addEventListener("click", () => { state[key] = b.dataset.v; render(); }));
   });
   document.getElementById("fClient").addEventListener("change", (e) => { state.client = e.target.value; render(); });
-  document.getElementById("resetBtn").addEventListener("click", () => { Object.assign(state, { period: "YTD", segment: "All", client: "All", teacherType: "All", teacher: "All" }); render(); });
+  document.getElementById("resetBtn").addEventListener("click", () => { Object.assign(state, { period: "YTD", segment: "All", client: "All" }); render(); });
 
   document.addEventListener("click", (e) => {
-    if (e.target.id === "clearTeacher") { state.teacher = "All"; render(); return; }
     const mEl = e.target.closest("[data-month]");
     if (mEl) { state.period = state.period === mEl.dataset.month ? "YTD" : mEl.dataset.month; render(); return; }
     const bEl = e.target.closest("[data-batch],[data-click]");
     if (bEl) { openBatch(bEl.dataset.batch || bEl.dataset.click); return; }
     const cEl = e.target.closest("[data-client]");
     if (cEl) { state.client = cEl.dataset.client; state.segment = "All"; setTab("batches"); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
-    const tEl = e.target.closest("[data-teacher]");
-    if (tEl) {
-      state.teacher = tEl.dataset.teacher; state.teacherType = "All"; state.client = "All"; state.segment = "All";
-      setTab("batches"); window.scrollTo({ top: 0, behavior: "smooth" });
-    }
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches(".client-card")) e.target.click(); });
 
@@ -795,5 +704,5 @@
   });
 
   const initial = (location.hash || "").slice(1);
-  setTab(["overview", "trend", "clients", "batches", "teachers", "method"].includes(initial) ? initial : "overview");
+  setTab(["overview", "trend", "clients", "batches", "method"].includes(initial) ? initial : "overview");
 })();
