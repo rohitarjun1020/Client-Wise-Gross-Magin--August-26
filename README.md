@@ -1,7 +1,7 @@
 # TMC – B2B Client-wise Profitability Dashboard (FY 2026-27 YTD)
 
 An interactive dashboard for **The Migration Company (TMC)**. It turns the B2B figures in the "TMC YTD
-Profitability Analysis" workbook (April–August 2026) into views a client can read without going
+Profitability Analysis" workbook (April–September 2026) into views a client can read without going
 through the spreadsheet. You can view the full year to date or any single month.
 
 ## Open it
@@ -40,13 +40,17 @@ scripts/extract_data.py  regenerates data/data.js from a new month's workbook
 
 ## Updating for a new month
 
-Add the new month's sheets to the workbook, add the month to `MONTHS` in `scripts/extract_data.py`, then run:
+Add the new month's "<Mon> Batch P&L" and "<Mon> Revenue & Cogs" sheets and its MIS Reconciliation
+column to the workbook, then run the script. It picks up every month that has a Batch P&L sheet, and
+stops if the MIS Reconciliation month columns don't match those sheets. Earlier months are re-read as
+well, so any restatement in the workbook flows through.
 
 ```bash
 pip install openpyxl
 python3 scripts/extract_data.py "TMC_YTD_Profitability_Analysis.xlsx"
 ```
 
-Then update the period text in `index.html`. The workbook itself is not committed, because this
+Then update the period text in `index.html` (meta description, header, "How it's calculated" intro,
+YTD glossary entry and footer). The workbook itself is not committed, because this
 repository is public and the workbook contains individual payroll lines. Only batch-level figures
 and the total operations salary pool are exported.
